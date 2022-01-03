@@ -1,9 +1,14 @@
 <template>
   <div class="customer">
     <div class="name">{{customer._source.name}}</div>
+
     <div class="image">
-      <img :src="customer._source.image" :alt="customer._source.name" />
+      <img
+        :src="customer._source.img"
+        :alt="customer._source.name"
+      />
     </div>
+
     <div>{{customer._source.registered_at}}</div>
   </div>
 </template>

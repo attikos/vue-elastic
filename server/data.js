@@ -36,3 +36,28 @@ client.bulk({ body: bulk }, function(err, response) {
     console.log('Successfully imported %s', customers.length)
   }
 })
+
+client.indices.putMapping(
+  {
+    index: 'elastic-vue-customers',
+    type: 'customers_list',
+    body: {
+      properties: {
+        id: { type: 'long' },
+        registered_at: { type: 'text' },
+        name: { type: 'text' },
+        gender: { type: 'text' },
+        country: { type: 'text' },
+        ip_address: { type: 'text' },
+        img: { type: 'text' }
+      }
+    }
+  },
+  function(err, response) {
+    if (err) {
+      console.log('Failed mapping operation', err)
+    } else {
+      console.log('Successfully', response)
+    }
+  }
+)
