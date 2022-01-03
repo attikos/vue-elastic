@@ -1,60 +1,88 @@
 <template>
-  <div>
-    <div>
-      <h1>Search Producs</h1>
+  <div class="container">
+    <section class="search">
+      <b-input placeholder="Search" @keyup.native.enter="search" v-model="query"></b-input>
+    </section>
+    <div class="customer-count">{{ `${total} customers` }}</div>
+    <div class="customers-list">
+      <customer-tile v-for="customer in customers" :key="customer._id" :customer="customer" />
+      <infinite-loading @infinite="infiniteHandler"></infinite-loading>
     </div>
-    <form>
-      <div>
-        <label for="search">Search</label>
-        <input type="text" name="search" id="search" placeholder="search" v-model="query" />
-        <span></span>
-      </div>
-    </form>
   </div>
 </template>
 
 <script>
+import InfiniteLoading from "vue-infinite-loading";
+import CustomerTile from "./CustomerTile";
+import { api } from "../utils.ts";
 import axios from "axios";
+import "buefy/dist/buefy.css";
 export default {
   name: "Search",
   data() {
     return {
       query: "",
+      page: 0,
+      total: 0,
       customers: []
     };
   },
+  components: {
+    CustomerTile,
+    InfiniteLoading
+  },
   methods: {
-    search: function() {
+    infiniteHandler($state) {
       axios
-        .get("http://127.0.0.1:3001/search?q=" + this.query)
+        .get(`${api}/customers?p=${this.page}&q=${this.query}`)
         .then(response => {
-          console.log(response);
-          this.customers = response.data;
+          this.total = response.data.total ? response.data.total.value : 0;
+          const customers = response.data.hits;
+          if (customers.length) {
+            this.page += 1;
+            this.customers.push(...customers);
+            if ($state) {
+              $state.loaded();
+            }
+          } else {
+            $state.complete();
+          }
         });
+    },
+    search() {
+      axios.get(`${api}/search?q=${this.query}`).then(response => {
+        this.customers = response.data.hits;
+        this.total = response.data.total ? response.data.total.value : 0;
+      });
     }
   },
-  watch: {
-    query: function() {
-      this.search();
-    }
-  },
-  beforeMount() {}
+  beforeMount() {
+    this.infiniteHandler();
+  }
 };
 </script>
 
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.search {
+  display: flex;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+.customers-list {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 20px;
 }
-a {
-  color: #42b983;
+.customer-count {
+  width: 100%;
+  padding-left: 20px;
+  text-align: start;
+}
+.autocomplete {
+  width: 300px;
 }
 </style>

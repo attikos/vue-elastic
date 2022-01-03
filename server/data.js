@@ -4,6 +4,19 @@ const client = new elasticsearch.Client({
   hosts: ['http://localhost:9200']
 })
 
+client.indices.create(
+  {
+    index: 'elastic-vue-customers'
+  },
+  function(error, response, status) {
+    if (error) {
+      console.log(error)
+    } else {
+      console.log('created a new index', response)
+    }
+  }
+)
+
 const customers = require('./customers.json')
 var bulk = []
 customers.forEach(customer=> {
