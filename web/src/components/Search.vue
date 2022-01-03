@@ -9,13 +9,11 @@
     <div class="customer-count">{{ `${total} customers` }}</div>
     <div class="customers-list">
       <customer-tile v-for="customer in customers" :key="customer._id" :customer="customer" />
-      <infinite-loading @infinite="infiniteHandler"></infinite-loading>
     </div>
   </div>
 </template>
 
 <script>
-import InfiniteLoading from "vue-infinite-loading";
 import CustomerTile from "./CustomerTile";
 import { api } from "../utils.ts";
 import axios from "axios";
@@ -33,22 +31,30 @@ export default {
     };
   },
   components: {
-    CustomerTile,
-    InfiniteLoading
+    CustomerTile
   },
   methods: {
-    async infiniteHandler($state) {
+    async infiniteHandler() {
+      this.loading = true;
       const response = await this.getCustomers();
       this.total = response.data.total ? response.data.total.value : 0;
       const customers = response.data.hits;
       if (customers.length) {
         this.page += 1;
         this.customers.push(...customers);
-        if ($state) {
-          $state.loaded();
-        }
       } else {
-        $state.complete();
+        console.log("Done");
+      }
+      this.loading = false;
+    },
+    handleScroll({
+      target: {
+        scrollingElement: { scrollTop, clientHeight, scrollHeight }
+      }
+    }) {
+      if (scrollTop + clientHeight + 500 >= scrollHeight) {
+        if (!this.loading && this.customers.length < this.total - 1)
+          this.infiniteHandler();
       }
     },
     async listCustomers() {
@@ -66,6 +72,12 @@ export default {
     changeSort() {
       this.listCustomers();
     }
+  },
+  created: function() {
+    window.addEventListener("scroll", this.handleScroll);
+  },
+  destroyed: function() {
+    window.removeEventListener("scroll", this.handleScroll);
   },
   beforeMount() {
     this.listCustomers();
