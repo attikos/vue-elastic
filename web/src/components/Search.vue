@@ -1,7 +1,10 @@
 <template>
   <div class="container">
     <section class="search">
-      <b-input placeholder="Search" @keyup.native.enter="search" v-model="query"></b-input>
+      <b-input placeholder="Search" @keyup.native.enter="listCustomers" v-model="query"></b-input>
+      <b-select @input="changeSort" v-model="sortBy" placeholder="Sort by">
+        <option v-for="option in sortParams" :value="option" :key="option">{{ option }}</option>
+      </b-select>
     </section>
     <div class="customer-count">{{ `${total} customers` }}</div>
     <div class="customers-list">
@@ -24,7 +27,9 @@ export default {
       query: "",
       page: 0,
       total: 0,
-      customers: []
+      sortParams: ["Default", "Registered Low-High", "Registered High-Low"],
+      customers: [],
+      sortBy: "Default"
     };
   },
   components: {
@@ -32,32 +37,38 @@ export default {
     InfiniteLoading
   },
   methods: {
-    infiniteHandler($state) {
-      axios
-        .get(`${api}/customers?p=${this.page}&q=${this.query}`)
-        .then(response => {
-          this.total = response.data.total ? response.data.total.value : 0;
-          const customers = response.data.hits;
-          if (customers.length) {
-            this.page += 1;
-            this.customers.push(...customers);
-            if ($state) {
-              $state.loaded();
-            }
-          } else {
-            $state.complete();
-          }
-        });
+    async infiniteHandler($state) {
+      const response = await this.getCustomers();
+      this.total = response.data.total ? response.data.total.value : 0;
+      const customers = response.data.hits;
+      if (customers.length) {
+        this.page += 1;
+        this.customers.push(...customers);
+        if ($state) {
+          $state.loaded();
+        }
+      } else {
+        $state.complete();
+      }
     },
-    search() {
-      axios.get(`${api}/search?q=${this.query}`).then(response => {
-        this.customers = response.data.hits;
-        this.total = response.data.total ? response.data.total.value : 0;
-      });
+    async listCustomers() {
+      this.page = 0;
+      const response = await this.getCustomers();
+      this.total = response.data.total ? response.data.total.value : 0;
+      this.customers = response.data.hits;
+      this.page = 1;
+    },
+    getCustomers() {
+      return axios.get(
+        `${api}/customers?page=${this.page}&query=${this.query}&sort=${this.sortBy}`
+      );
+    },
+    changeSort() {
+      this.listCustomers();
     }
   },
   beforeMount() {
-    this.infiniteHandler();
+    this.listCustomers();
   }
 };
 </script>
