@@ -2,12 +2,12 @@ function getSort(sortBy) {
   switch (sortBy) {
     case 'Registered Low-High': {
       return {
-        price: { order: 'asc' }
+        registered_at: { order: 'asc' }
       }
     }
     case 'Registered High-Low': {
       return {
-        price: { order: 'desc' }
+        registered_at: { order: 'desc' }
       }
     }
     default: {

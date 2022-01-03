@@ -15,14 +15,14 @@
 
 <script>
 export default {
-  name: "CustomersTile",
+  name: "CustomerTile",
   props: {
     customer: {
       type: Object,
       required: true
     }
   }
-};
+}
 </script>
 
 <style scoped>

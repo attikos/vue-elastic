@@ -19,7 +19,7 @@ client.indices.create(
 
 const customers = require('./customers.json')
 var bulk = []
-customers.forEach(customer=> {
+customers.forEach(customer => {
   bulk.push({
     index: {
       _index: 'elastic-vue-customers',
@@ -33,7 +33,7 @@ client.bulk({ body: bulk }, function(err, response) {
   if (err) {
     console.log('Failed Bulk operation', err)
   } else {
-    console.log('Successfully imported %s', customers.length)
+    console.log('Successfully imported', customers.length)
   }
 })
 

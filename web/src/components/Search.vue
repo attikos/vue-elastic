@@ -1,68 +1,106 @@
 <template>
   <div class="container">
     <section class="search">
-      <b-input placeholder="Search" @keyup.native.enter="listCustomers" v-model="query"></b-input>
-      <b-select @input="changeSort" v-model="sortBy" placeholder="Sort by">
-        <option v-for="option in sortParams" :value="option" :key="option">{{ option }}</option>
+      <b-input
+        placeholder="Search"
+        v-model="query"
+        @keyup.native.enter="fetchCustomer"
+      ></b-input>
+
+      <b-select
+        @input="changeSort"
+        v-model="sortBy"
+        placeholder="Sort by"
+      >
+        <option
+          v-for="option in sortParams"
+          :value="option"
+          :key="option"
+        >{{ option }}</option>
       </b-select>
     </section>
+
     <div class="customer-count">{{ `${total} customers` }}</div>
+
     <div class="customers-list">
-      <customer-tile v-for="customer in customers" :key="customer._id" :customer="customer" />
+      <customer-tile
+        v-for="customer in customers"
+        :key="customer.id"
+        :customer="customer"
+      ></customer-tile>
     </div>
   </div>
 </template>
 
 <script>
-import CustomerTile from "./CustomerTile";
-import { api } from "../utils.ts";
-import axios from "axios";
-import "buefy/dist/buefy.css";
+import CustomerTile from './CustomerTile'
+import { api } from '../utils.ts'
+import axios from 'axios'
+import 'buefy/dist/buefy.css'
+
 export default {
-  name: "Search",
+  name: 'Search',
   data() {
     return {
-      query: "",
+      query: '',
       page: 0,
       total: 0,
-      sortParams: ["Default", "Registered Low-High", "Registered High-Low"],
+      loading: false,
+      sortParams: ['Default', 'Registered Low-High', 'Registered High-Low'],
       customers: [],
-      sortBy: "Default"
-    };
+      sortBy: 'Default'
+    }
   },
   components: {
     CustomerTile
   },
   methods: {
-    async infiniteHandler() {
-      this.loading = true;
-      const response = await this.getCustomers();
-      this.total = response.data.total ? response.data.total.value : 0;
-      const customers = response.data.hits;
-      if (customers.length) {
-        this.page += 1;
-        this.customers.push(...customers);
-      } else {
-        console.log("Done");
+    async loadMore() {
+      let response
+      this.loading = true
+
+      try {
+        response = await this.getCustomers()
+      } catch (error) {
+        console.log(error);
       }
-      this.loading = false;
+
+      this.total = response.data.total ? response.data.total.value : 0
+      const customers = response.data.hits
+
+      if (customers.length) {
+        this.page += 1
+        this.customers.push(...customers)
+      } else {
+        console.log("Done")
+      }
+
+      this.loading = false
     },
     handleScroll({
       target: {
         scrollingElement: { scrollTop, clientHeight, scrollHeight }
       }
     }) {
+
       if (scrollTop + clientHeight + 500 >= scrollHeight) {
         if (!this.loading && this.customers.length < this.total - 1)
-          this.infiniteHandler();
+          this.loadMore()
       }
     },
-    async listCustomers() {
-      this.page = 0;
-      const response = await this.getCustomers();
-      this.total = response.data.total ? response.data.total.value : 0;
-      this.customers = response.data.hits;
-      this.page = 1;
+    async fetchCustomer() {
+      let response
+      this.page = 0
+
+      try {
+        response = await this.getCustomers()
+      } catch (error) {
+        console.log(error)
+      }
+
+      this.total = response.data.total ? response.data.total.value : 0
+      this.customers = response.data.hits
+      this.page = 1
     },
     getCustomers() {
       return axios.get(
@@ -70,19 +108,19 @@ export default {
       );
     },
     changeSort() {
-      this.listCustomers();
+      this.fetchCustomer()
     }
   },
-  created: function() {
-    window.addEventListener("scroll", this.handleScroll);
-  },
-  destroyed: function() {
-    window.removeEventListener("scroll", this.handleScroll);
+  created() {
+    window.addEventListener('scroll', this.handleScroll)
   },
   beforeMount() {
-    this.listCustomers();
-  }
-};
+    this.fetchCustomer()
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll)
+  },
+}
 </script>
 
 <style scoped>
