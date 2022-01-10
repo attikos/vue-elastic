@@ -22,3 +22,5 @@ database/*.sqlite
 .history
 .idea
 .vscode
+
+docker/elasticsearch/data/
