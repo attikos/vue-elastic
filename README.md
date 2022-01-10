@@ -1,16 +1,18 @@
 # vue-elastic
 
-<==== Server ====>
+![demo vue elasticsearch](https://github.com/attikos/vue-elastic/blob/main/demo.gif)
+
+## Server
 
 cd server
 
 npm install
 
-npm run create ---> run once for create index and bulk customers
+npm run create - run once for create index and bulk customers
 
-npm start ---> run server
+npm start - run server
 
-<==== Web ====>
+## Web
 
 cd web
 
